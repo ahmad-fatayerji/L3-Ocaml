@@ -58,7 +58,7 @@ let rec verif_expr expression type_attendu environment = match (expression,type_
      			| ((And,x,y),TBool) | ((Or,x,y),TBool) | ((Equal,x,y),TBool)
 			| ((NEqual,x,y),TBool) -> (verif_expr x TBool env) && (verif_expr y TBool env)
    	| (UnaryOp (x,y),attente,env) -> verif_expr x TBool env
-    	| IF
+    	| (IF (x,y,z),attente,env) -> (verif_expr x TBool env) && (verif_expr y attente env) && (verif_expr z attente env)
      	| Let
       	| App
 	| _ -> false
