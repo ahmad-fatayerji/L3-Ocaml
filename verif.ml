@@ -50,7 +50,17 @@ let rec verif_expr expression type_attendu environment = match (expression,type_
 	| (Bool b,TBool,_) -> true
 	| (Var v,attente,env) -> check_var v attente env.l_variables
 	| (IdFun f,attente,env) -> check_fun f attente env.l_functions
-	|
+	| (BinaryOp binOp,attente,env) -> match (binOp,attente) with
+ 			| ((Plus,x,y),TInt) | ((Minus,x,y),TInt) | ((Mult,x,y),TInt)
+    			| ((Div,x,y),TInt) | ((Equal,x,y),TInt) | ((NEqual,x,y),TInt)
+       			| ((Less,x,y),TInt) | ((LessEq,x,y),TInt) | ((Great,x,y),TInt)
+	  		| ((GreatEq,x,y),TInt) -> (verif_expr x TInt env) && (verif_expr y TInt env)
+     			| ((And,x,y),TBool) | ((Or,x,y),TBool) | ((Equal,x,y),TBool)
+			| ((NEqual,x,y),TBool) -> (verif_expr x TBool env) && (verif_expr y TBool env)
+   	| (UnaryOp (x,y),attente,env) -> verif_expr x TBool env
+    	| IF
+     	| Let
+      	| App
 	| _ -> false
 
 let verif_decl_fun funct environment = match (funct,environment) with
