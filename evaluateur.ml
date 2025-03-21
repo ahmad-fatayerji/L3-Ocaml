@@ -1,24 +1,17 @@
-(*
-  Auteur : FATAYERJI Ahmad
-  Groupe : 684J
+(* Auteurs:
+Ahmad Fatayerji
+Théo Chouin
+Groupe 684J
 *)
 
 open Syntax
 
-(* Type pour représenter les valeurs calculées dans SimpleML *)
-type value = VInt of int | VBool of bool
+type t_val = V_int of int | V_bool of bool
 
-(* Environnement d'évaluation : association d'identifiants à leur valeur *)
-type env_val = (string * value) list
+let eval_expr expression environment = match (expression,environment) with
+	| _ -> ()
 
-(* eval_expr : env_val -> expr -> value*)
-(* Évalue une expression dans l'environnement env et renvoie une valeur. *)
-let eval_expr (env : env_val) (e : expr) : value =
-  (* code ici *)
-  VInt 0 (* placeholder *)
+let eval_prog program = match program with
+	| _ -> ()
 
-(* eval_prog : prog -> value*)
-(*Évalue l'ensemble du programme en exécutant la fonction main.*)
-let eval_prog (p : programme) : value =
-  (* code ici *)
-  VInt 0 (* placeholder *)
+type env_val = { l_variables: (idvar * t_val) list ; l_functions: (fun_decl * t_val) list }
