@@ -52,8 +52,12 @@ let rec verif_expr expression type_attendu environment = match (expression,type_
 	| (App (a,b),attente,env) -> if check_expr a attente env then check_arg ( get_decl_arg a env ) b env else false
 	| _ -> false
 
-let verif_decl_fun funct environment = match (funct,environment) with
+let verif_decl_fun f env = match (f,env) with
 	| _ -> false
 
-let verif_prog program = match program with
-	| _ -> false
+let verif_prog program =
+	let rec verif_aux l_fun env = match l_fun with
+ 		| x::l_fun' -> if verif decl_fun funct env then verif_aux l_fun' { l_variables = env.l_variables ; l_functions = x::env.l_functions } else false
+   		| [] -> true
+  	in
+   verif_aux program { l_variables = [] ; l_functions = [] }
