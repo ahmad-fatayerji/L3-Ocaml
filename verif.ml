@@ -8,7 +8,7 @@ open Syntax
 type env_type = { l_variables: (idvar * typ) list ; l_functions: fun_decl list }
 
 let rec check_var v a l = match (v,a,l) with
-	| (_,_,[]) -> failwith "use of undeclared variable !"
+	| (_,_,[]) -> failwith "Error check_var : use of undeclared variable !"
 	| (x,y,(a,b)::l') -> if (x = a) then
  						if (y = b)
        						then true
@@ -16,12 +16,22 @@ let rec check_var v a l = match (v,a,l) with
 					else check_var x y l'
 
 let rec check_fun f a l = match (f,a,l) with
-	| (_,_,[]) -> failwith "use of undeclared function !"
+	| (_,_,[]) -> failwith "Error check_fun : use of undeclared function !"
 	| (x,y,f'::l') -> if (x = f'.id) then
  						if (y = f'.typ_retour)
        						then true
 						else false
 					else check_fun x y l'
+
+let rec check_arg decl arg env = match (decl,arg) with
+	| ( (_,a)::decl' , y::arg' ) -> if verif_expr y a env then check_arg decl' arg' env else false
+ 	| ( _::_ , [] ) -> failwith "Error check_arg : not enough arguments !"
+  	| ( [] , _::_ ) -> failwith "Error check_arg : too many arguments !"
+   	| ( [] , [] ) -> true
+
+let rec get_decl_arg id fList = match fList with
+	| (a,b,_,_)::fL' -> if ( a = id ) then b else get_decl_arg id fL'
+ 	| [] -> []
 
 let rec verif_expr expression type_attendu environment = match (expression,type_attendu,environment) with
 	| (Int _,TInt,_) -> true
@@ -39,7 +49,7 @@ let rec verif_expr expression type_attendu environment = match (expression,type_
 	| (UnaryOp (_,x),TBool,env) -> verif_expr x TBool env
 	| (If (x,y,z),attente,env) -> (verif_expr x TBool env) && (verif_expr y attente env) && (verif_expr z attente env)
 	| (Let (a,b,c,d),attente,env) -> if (verif_expr c b env) then verif_expr d attente {l_variables = (a,b)::env.l_variables ; l_functions = env.l_functions} else false
-	(*| (App (a,b),attente,env) -> false*)
+	| (App (a,b),attente,env) -> if check_expr a attente env then check_arg ( get_decl_arg a env ) b env else false
 	| _ -> false
 
 let verif_decl_fun funct environment = match (funct,environment) with
