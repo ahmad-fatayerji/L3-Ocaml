@@ -11,12 +11,15 @@
 %token LAND LOR NOT
 %token NEQ GREAT GREATEQ LESS LESSEQ
 %token TRUE FALSE
-%token LPAR RPAR COMMA COLON
+%token LPAR RPAR COMMA COLON SEMICOLON (* Sequencing operator is added here *)
 %token LET IN
 %token IF THEN ELSE
 
+
+
 %token TINT
 %token TBOOL
+%token TUNIT
 
 %left ELSE IN
 %nonassoc NOT
@@ -25,7 +28,7 @@
 %left LAND
 %left PLUS MINUS
 %left MULT DIV
-%left SEQ
+%left SEMICOLON
 
 %start prog
 %type <Syntax.programme> prog
@@ -38,6 +41,7 @@ prog: list_implem_decl; EOF  { $1 }
 ty:
   | TBOOL        { TBool }
   | TINT         { TInt }
+  | TUNIT        { TUnit }
 
 fun_decl:
   | LET VAR LPAR list_typed_ident RPAR COLON ty EQ expr
@@ -53,6 +57,7 @@ expr:
   | INT             { Int $1 }
   | TRUE            { Bool true }
   | FALSE           { Bool false }
+  | LPAR RPAR { Unit }   (* Unit literal rule *)
   | LPAR expr RPAR   { $2 }
   | app_expr { $1 }
   | IF expr THEN expr ELSE expr        { If ($2, $4, $6) }
@@ -71,7 +76,7 @@ expr:
   | expr GREATEQ expr  { BinaryOp (GreatEq, $1, $3) }
   | expr LESS expr    { BinaryOp (Less, $1, $3) }
   | expr LESSEQ expr  { BinaryOp (LessEq, $1, $3) }
-  | expr SEMICOLON expr { SEQ ($1, $3) }
+  | expr SEMICOLON expr { Seq ($1, $3) } (* Added this rule *)
 
 app_expr:
   | VAR LPAR list_expr RPAR { App ($1, $3) }

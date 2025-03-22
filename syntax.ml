@@ -1,5 +1,8 @@
 (* typ représente les types de SimpleML *)
-type typ = TInt | TBool
+type typ = 
+  | TInt 
+  | TBool 
+  | TUnit (* Added for the unit type *)
 
 (* Définition de l'arbre de syntaxe abstrait des expressions de SimpleML *)
 
@@ -36,6 +39,8 @@ type expr =
   | If of expr * expr * expr
   | Let of idvar * typ * expr * expr
   | App of idfun * expr list
+  | Seq of expr * expr   (* For M; N *)
+  | Unit  (* Added for the unit value *)
 
 (* Définition du type des déclarations de fonction de SimpleML *)
 
@@ -52,7 +57,11 @@ type programme = fun_decl list
 
 (* Fonctions d'affichage pour la syntaxe de SimpleML *)
 
-let string_of_type typ = match typ with TInt -> "int" | TBool -> "bool"
+let string_of_type typ =
+  match typ with
+  | TInt -> "int"
+  | TBool -> "bool"
+  | TUnit -> "unit" (* Added for the unit type *)
 
 let string_of_binary_op binop =
   match binop with
@@ -82,6 +91,7 @@ and string_of_expr expr =
   | Var x -> x
   | Int n -> string_of_int n
   | Bool b -> string_of_bool b
+  | Unit -> "()"  (* New case for unit literal *)
   | BinaryOp (binop, expr1, expr2) ->
       string_of_expr expr1 ^ string_of_binary_op binop ^ string_of_expr expr2
   | UnaryOp (unop, expr) -> string_of_unary_op unop ^ string_of_expr expr
@@ -92,6 +102,8 @@ and string_of_expr expr =
       "let (" ^ idvar ^ ":" ^ string_of_type typ ^ ") = " ^ string_of_expr expr1
       ^ " in " ^ string_of_expr expr2
   | App (idfun, expr_list) -> idfun ^ "(" ^ string_of_expr_list expr_list ^ ")"
+  | Seq (e1, e2) ->
+    "(" ^ string_of_expr e1 ^ "; " ^ string_of_expr e2 ^ ")"  (* Added this case *)
 
 let rec string_of_var_list var_list =
   match var_list with

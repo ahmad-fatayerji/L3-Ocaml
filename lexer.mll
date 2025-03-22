@@ -51,12 +51,14 @@ rule token = parse
 
   | "int" { TINT }
   | "bool" { TBOOL }
+  | "unit" { TUNIT }
 
 
   | '('  { LPAR }
   | ')'  { RPAR }
   | ','  { COMMA }
   | ':'  { COLON }
+  | ';'  { SEMICOLON }  (* Sequencing operator is here *)
   
   | eof  { EOF }
 
