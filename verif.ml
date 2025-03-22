@@ -39,11 +39,11 @@ let rec verif_expr expression type_attendu environment = match (expression,type_
 	| (Var v,attente,env) -> check_var v attente env.l_variables
 	| (IdFun f,attente,env) -> check_fun f attente env.l_functions
 	| (BinaryOp (x,y,z),attente,env) -> begin match (x,attente) with
- 		| (Plus,TInt) 	| (Minus,TInt) | (Mult,TInt) | (Div,TInt) | (Equal,TInt)
-   		| (NEqual,TInt) | (Less,TInt) 	| (LessEq,TInt) | (Great,TInt)
+ 		| (Plus,TInt) 	| (Minus,TInt) | (Mult,TInt) | (Div,TInt)
 	  	| (GreatEq,TInt) -> (verif_expr z TInt env) && (verif_expr y TInt env)
-     		| (And,TBool) 	| (Or,TBool) | (Equal,TBool)
-		| (NEqual,TBool) -> (verif_expr z TBool env) && (verif_expr y TBool env)
+     		| (And,TBool) 	| (Or,TBool) -> (verif_expr z TBool env) && (verif_expr y TBool env)
+		| (Equal,TBool) | (NEqual,TBool) -> ( (verif_expr z TBool env) && (verif_expr y TBool env) ) || ( (verif_expr z TInt env) && (verif_expr y TInt env) )
+  		| (Less,TBool) | (LessEq,TBool) | (Great,TBool) -> (verif_expr z TInt env) && (verif_expr y TInt env)
 		| _ -> false
 		end
 	| (UnaryOp (_,x),TBool,env) -> verif_expr x TBool env
