@@ -1,115 +1,64 @@
-(* typ représente les types de SimpleML *)
-type typ = TInt | TBool
+(* Auteurs: 684J
+Ahmad Fatayerji
+Théo Chouin
+*)
 
-(* Définition de l'arbre de syntaxe abstrait des expressions de SimpleML *)
+open Syntax
 
-(*on introduit deux types auxilliaires pour représenter le type des identifiants 
-  de variable et les identitifiants de fonction.*)
-type idvar = string
-type idfun = string
+type env_type = { l_variables: (idvar * typ) list ; l_functions: fun_decl list }
 
-(* Pour factoriser la présentation des opérateurs binaires, on utilise un type énuméré
-binary_op de tous les opérateurs binaires de la syntaxe de SimpleML *)
+let rec check_var v a l = match (v,a,l) with
+	| (_,_,[]) -> failwith "Error check_var : use of undeclared variable !"
+	| (x,y,(a,b)::l') -> if (x = a) then
+ 						if (y = b)
+       						then true
+	     					else false
+					else check_var x y l'
 
-type binary_op =
-  | Plus
-  | Minus
-  | Mult
-  | Div
-  | And
-  | Or
-  | Equal
-  | NEqual
-  | Less
-  | LessEq
-  | Great
-  | GreatEq
+let rec check_fun f a l = match (f,a,l) with
+	| (_,_,[]) -> failwith "Error check_fun : use of undeclared function !"
+	| (x,y,f'::l') -> if (x = f'.id) then
+ 						if (y = f'.typ_retour)
+       						then true
+						else false
+					else check_fun x y l'
 
-type unary_op = Not
+let rec get_decl_arg id fList = match fList with
+	| (a,b,_,_)::fL' -> if ( a = id ) then b else get_decl_arg id fL'
+ 	| [] -> []
 
-type expr =
-  | Var of idvar
-  | IdFun of idfun
-  | Int of int
-  | Bool of bool
-  | BinaryOp of binary_op * expr * expr
-  | UnaryOp of unary_op * expr
-  | If of expr * expr * expr
-  | Let of idvar * typ * expr * expr
-  | App of idfun * expr list
+let rec verif_expr expression type_attendu environment = 
+	let rec check_arg decl arg env = match (decl,arg) with
+	| ( (_,a)::decl' , y::arg' ) -> if verif_expr y a env then check_arg decl' arg' env else false
+ 	| ( _::_ , [] ) -> failwith "Error check_arg : not enough arguments !"
+  	| ( [] , _::_ ) -> failwith "Error check_arg : too many arguments !"
+   	| ( [] , [] ) -> true
+	in
+	match (expression,type_attendu,environment) with
+	| (Int _,TInt,_) -> true
+	| (Bool _,TBool,_) -> true
+	| (Var v,attente,env) -> check_var v attente env.l_variables
+	| (IdFun f,attente,env) -> check_fun f attente env.l_functions
+	| (BinaryOp (x,y,z),attente,env) -> begin match (x,attente) with
+ 		| (Plus,TInt) 	| (Minus,TInt) | (Mult,TInt) | (Div,TInt)
+	  	| (GreatEq,TInt) -> (verif_expr z TInt env) && (verif_expr y TInt env)
+     		| (And,TBool) 	| (Or,TBool) -> (verif_expr z TBool env) && (verif_expr y TBool env)
+		| (Equal,TBool) | (NEqual,TBool) -> ( (verif_expr z TBool env) && (verif_expr y TBool env) ) || ( (verif_expr z TInt env) && (verif_expr y TInt env) )
+  		| (Less,TBool) | (LessEq,TBool) | (Great,TBool) -> (verif_expr z TInt env) && (verif_expr y TInt env)
+		| _ -> false
+		end
+	| (UnaryOp (_,x),TBool,env) -> verif_expr x TBool env
+	| (If (x,y,z),attente,env) -> (verif_expr x TBool env) && (verif_expr y attente env) && (verif_expr z attente env)
+	| (Let (a,b,c,d),attente,env) -> if (verif_expr c b env) then verif_expr d attente {l_variables = (a,b)::env.l_variables ; l_functions = env.l_functions} else false
+	| (App (a,b),attente,env) -> if check_fun a attente env.l_functions then check_arg ( get_decl_arg a env.l_functions ) b env else false
+	| _ -> false
 
-(* Définition du type des déclarations de fonction de SimpleML *)
+let verif_decl_fun f env = match (f,env) with
+	| _ -> false
 
-type fun_decl = {
-  id: idfun;
-  var_list: (idvar * typ) list;
-  typ_retour: typ;
-  corps: expr;
-}
-
-(* Définition du type des programmes de SimpleML *)
-
-type programme = fun_decl list
-
-(* Fonctions d'affichage pour la syntaxe de SimpleML *)
-
-let string_of_type typ = match typ with TInt -> "int" | TBool -> "bool"
-
-let string_of_binary_op binop =
-  match binop with
-  | Plus -> "+"
-  | Minus -> "-"
-  | Mult -> "*"
-  | Div -> "/"
-  | And -> "and"
-  | Or -> "or"
-  | Equal -> "="
-  | NEqual -> "!="
-  | Less -> "<"
-  | LessEq -> "<="
-  | Great -> ">"
-  | GreatEq -> ">="
-
-let string_of_unary_op unop = match unop with Not -> "not"
-
-let rec string_of_expr_list expr_list =
-  match expr_list with
-  | [] -> ""
-  | [ e ] -> string_of_expr e
-  | e :: expr_list' -> string_of_expr e ^ "," ^ string_of_expr_list expr_list'
-
-and string_of_expr expr =
-  match expr with
-  | Var x -> x
-  | IdFun x -> x
-  | Int n -> string_of_int n
-  | Bool b -> string_of_bool b
-  | BinaryOp (binop, expr1, expr2) ->
-      string_of_expr expr1 ^ string_of_binary_op binop ^ string_of_expr expr2
-  | UnaryOp (unop, expr) -> string_of_unary_op unop ^ string_of_expr expr
-  | If (expr1, expr2, expr3) ->
-      "if " ^ string_of_expr expr1 ^ " then " ^ string_of_expr expr2 ^ " else "
-      ^ string_of_expr expr3
-  | Let (idvar, typ, expr1, expr2) ->
-      "let (" ^ idvar ^ ":" ^ string_of_type typ ^ ") = " ^ string_of_expr expr1
-      ^ " in " ^ string_of_expr expr2
-  | App (idfun, expr_list) -> idfun ^ "(" ^ string_of_expr_list expr_list ^ ")"
-
-let rec string_of_var_list var_list =
-  match var_list with
-  | [] -> ""
-  | [ (x, ty) ] -> x ^ ":" ^ string_of_type ty
-  | (x, ty) :: var_list' ->
-      x ^ ":" ^ string_of_type ty ^ "," ^ string_of_var_list var_list'
-
-let string_of_fun_decl fdecl =
-  "let " ^ fdecl.id ^ "("
-  ^ string_of_var_list fdecl.var_list
-  ^ ") : "
-  ^ string_of_type fdecl.typ_retour
-  ^ " = " ^ string_of_expr fdecl.corps
-
-let string_of_programme prog =
-  List.fold_left
-    (fun str_res fdecl -> string_of_fun_decl fdecl ^ "\n" ^ str_res)
-    "" prog
+let verif_prog program =
+	let rec verif_aux l_fun env = match l_fun with
+ 		| x::l_fun' -> if verif decl_fun funct env then verif_aux l_fun' { l_variables = env.l_variables ; l_functions = x::env.l_functions } else false
+   		| [] -> true
+  	in
+   verif_aux program { l_variables = [] ; l_functions = [] }
