@@ -5,21 +5,24 @@
 
 %token EOF
 %token <int> INT
+%token <float> FLOAT (* Added float token *)
 %token <Syntax.idvar> VAR
 %token EQ
 %token PLUS MINUS MULT DIV
+%token FPLUS FMINUS FMULT FDIV   (* Added float operators *)
 %token LAND LOR NOT
 %token NEQ GREAT GREATEQ LESS LESSEQ
 %token TRUE FALSE
-%token LPAR RPAR COMMA COLON SEMICOLON (* Sequencing operator is added here *)
+%token LPAR RPAR COMMA COLON 
 %token LET IN
 %token IF THEN ELSE
 
-
+%token PRINT_INT                (* Added print_int token *)
 
 %token TINT
 %token TBOOL
 %token TUNIT
+%token TFLOAT                  (* Added float token *)
 
 %left ELSE IN
 %nonassoc NOT
@@ -55,9 +58,9 @@ list_implem_decl:
 expr:
   | VAR             { Var $1 }
   | INT             { Int $1 }
+  | FLOAT               { Float $1 }   (* Modified: Supports float literals *)
   | TRUE            { Bool true }
   | FALSE           { Bool false }
-  | LPAR RPAR { Unit }   (* Unit literal rule *)
   | LPAR expr RPAR   { $2 }
   | app_expr { $1 }
   | IF expr THEN expr ELSE expr        { If ($2, $4, $6) }
@@ -67,6 +70,10 @@ expr:
   | expr MINUS expr    { BinaryOp (Minus, $1, $3) }
   | expr MULT expr     { BinaryOp (Mult, $1, $3) }
   | expr DIV expr      { BinaryOp (Div, $1, $3) }
+  | expr FPLUS expr     { BinaryOp (FPlus, $1, $3) }   (* Added: float addition *)
+  | expr FMINUS expr    { BinaryOp (FMinus, $1, $3) }  (* Added: float subtraction *)
+  | expr FMULT expr     { BinaryOp (FMult, $1, $3) }   (* Added: float multiplication *)
+  | expr FDIV expr      { BinaryOp (FDiv, $1, $3) }    (* Added: float division *)
   | NOT expr          { UnaryOp (Not, $2) }
   | expr LAND expr     { BinaryOp (And, $1, $3) }
   | expr LOR expr      { BinaryOp (Or, $1, $3) }
@@ -76,7 +83,8 @@ expr:
   | expr GREATEQ expr  { BinaryOp (GreatEq, $1, $3) }
   | expr LESS expr    { BinaryOp (Less, $1, $3) }
   | expr LESSEQ expr  { BinaryOp (LessEq, $1, $3) }
-  | expr SEMICOLON expr { Seq ($1, $3) } (* Added this rule *)
+  | expr SEMICOLON expr { Seq ($1, $3) } (* Added sequencing operator *)
+  | expr NOT expr       { UnaryOp (Not, $2) }  (* Modified: Adjusted pattern for 'not' *)
 
 app_expr:
   | VAR LPAR list_expr RPAR { App ($1, $3) }
