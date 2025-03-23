@@ -93,7 +93,6 @@ expr:
   | expr LESS expr    { BinaryOp (Less, $1, $3) }
   | expr LESSEQ expr  { BinaryOp (LessEq, $1, $3) }
   | expr SEMICOLON expr { Seq ($1, $3) }             (* Added sequencing operator *)
-  (* Removed duplicate rule: "expr NOT expr { UnaryOp (Not, $2) }" *)
 
 (* Function application expression *)
 app_expr:
