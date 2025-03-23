@@ -28,6 +28,11 @@ rule token = parse
   | '*'  { MULT }
   | '/'  { DIV }
 
+  | "+." { FPlus }    (* Added float plus operator *)
+  | "-." { FMinus }   (* Added float minus operator *)
+  | "*." { FMult }    (* Added float multiplication operator *)
+  | "/." { FDiv }     (* Added float division operator *)
+
   | "true" { TRUE }
   | "false" { FALSE }
   | "&&" { LAND }
