@@ -59,7 +59,7 @@ type expr =
   | Let of idvar * typ * expr * expr
   | App of idfun * expr list
   | Seq of expr * expr   (* For M; N *)
-  | PInt of expr         (* For print_int *)
+  | PrintInt of expr         (* For print_int *)
 
 
 (* Définition du type des déclarations de fonction de SimpleML *)
@@ -126,7 +126,7 @@ let rec string_of_expr_list expr_list =
         "let " ^ idvar ^ " : " ^ string_of_type typ ^ " = " ^ string_of_expr expr1 ^ " in " ^ string_of_expr expr2
     | App (idfun, expr_list) -> idfun ^ "(" ^ string_of_expr_list expr_list ^ ")"
     | Seq (expr1, expr2) -> string_of_expr expr1 ^ "; " ^ string_of_expr expr2  (* For M; N *)
-    | PInt expr -> "print_int(" ^ string_of_expr expr ^ ")"                     (* For print_int *)
+    | PrintInt expr -> "print_int(" ^ string_of_expr expr ^ ")"                     (* For print_int *)
 
 let rec string_of_var_list var_list =
   match var_list with

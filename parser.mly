@@ -1,3 +1,8 @@
+(* Auteurs: 684J
+Ahmad Fatayerji
+Théo Chouin
+*)
+
 %{
   open Syntax
 %}
@@ -24,14 +29,15 @@
 %token TFLOAT                  (* Added float token *)
 %token SEMICOLON              (* Added sequencing operator *)
 
-%left ELSE IN
-%nonassoc NOT
-%nonassoc EQ NEQ GREAT GREATEQ LESS LESSEQ
-%left LOR
-%left LAND
-%left PLUS MINUS
-%left MULT DIV
+%left IN
 %left SEMICOLON
+%left ELSE
+%left PLUS MINUS
+%left MULT DIV FPLUS FMINUS FMULT FDIV
+%left LAND LOR
+%nonassoc EQ NEQ GREAT GREATEQ LESS LESSEQ
+%nonassoc NOT
+
 
 %start prog
 %type <Syntax.programme> prog
@@ -66,7 +72,7 @@ expr:
   | TRUE            { Bool true }
   | FALSE           { Bool false }
   | LPAR expr RPAR   { $2 }
-  | PRINT_INT LPAR expr RPAR { PInt $3 }  (* Added: print_int rule *)
+  | PRINT_INT LPAR expr RPAR { PrintInt $3 }  (* Added: print_int rule *)
   | app_expr        { $1 }
   | IF expr THEN expr ELSE expr { If ($2, $4, $6) }
   | LET LPAR VAR COLON ty RPAR EQ expr IN expr
@@ -89,7 +95,6 @@ expr:
   | expr LESS expr    { BinaryOp (Less, $1, $3) }
   | expr LESSEQ expr  { BinaryOp (LessEq, $1, $3) }
   | expr SEMICOLON expr { Seq ($1, $3) }             (* Added sequencing operator *)
-  (* Removed duplicate rule: "expr NOT expr { UnaryOp (Not, $2) }" *)
 
 (* Function application expression *)
 app_expr:

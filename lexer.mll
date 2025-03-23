@@ -1,3 +1,8 @@
+(* Auteurs: 684J
+Ahmad Fatayerji
+Théo Chouin
+*)
+
 {
   open Lexing
   open Parser
@@ -30,10 +35,10 @@ rule token = parse
   | '*'  { MULT }
   | '/'  { DIV }
 
-  | "+." { FPLUS }    (* Changed: use FPLUS instead of FPlus *)
-  | "-." { FMINUS }   (* Changed: use FMINUS instead of FMinus *)
-  | "*." { FMULT }    (* Changed: use FMULT instead of FMult *)
-  | "/." { FDIV }     (* Changed: use FDIV instead of FDiv *)
+  | "+." { FPLUS }    
+  | "-." { FMINUS }   
+  | "*." { FMULT }    
+  | "/." { FDIV }     
 
   | "true" { TRUE }
   | "false" { FALSE }

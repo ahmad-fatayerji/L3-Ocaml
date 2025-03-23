@@ -85,8 +85,7 @@ type env_type = { l_variables: (idvar * typ) list ; l_functions: fun_decl list }
 						verif_expr env prog e1 TFloat))
 					&&
 					verif_expr env prog e2 expected_ty
-			(* | IdFun _ -> false  A function identifier alone is not a valid expression *)
-			| PInt e ->
+			| PrintInt e ->
 					verif_expr env prog e TInt && expected_ty = TUnit
 		
 (* verif_decl_fun: Verifies that the function declaration 'decl' is well-typed.

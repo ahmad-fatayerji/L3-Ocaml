@@ -96,9 +96,7 @@ type env_val = { l_variables: (idvar * t_val) list ; l_functions: (fun_decl * t_
 		| Seq (e1, e2) ->
 				let _ = eval_expr env prog e1 in
 				eval_expr env prog e2
-		(* | IdFun _ ->
-				failwith "IdFun is not applicable" *)
-		| PInt e ->
+		| PrintInt e ->
 				(match eval_expr env prog e with
 				 | VInt n -> print_int n; print_newline (); VUnit
 				 | _ -> failwith "print_int must take an integer")
