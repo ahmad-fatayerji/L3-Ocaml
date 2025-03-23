@@ -6,8 +6,7 @@
 
   let newline lexbuf =
     let pos = lexbuf.lex_curr_p in
-      lexbuf.lex_curr_p <-
-        { pos with pos_lnum = pos.pos_lnum + 1; pos_bol = pos.pos_cnum }
+      lexbuf.lex_curr_p <- { pos with pos_lnum = pos.pos_lnum + 1; pos_bol = pos.pos_cnum }
 }
 
 let space = [' ' '\t' '\n' '\r']
@@ -31,10 +30,10 @@ rule token = parse
   | '*'  { MULT }
   | '/'  { DIV }
 
-  | "+." { FPlus }    (* Added float plus operator *)
-  | "-." { FMinus }   (* Added float minus operator *)
-  | "*." { FMult }    (* Added float multiplication operator *)
-  | "/." { FDiv }     (* Added float division operator *)
+  | "+." { FPLUS }    (* Changed: use FPLUS instead of FPlus *)
+  | "-." { FMINUS }   (* Changed: use FMINUS instead of FMinus *)
+  | "*." { FMULT }    (* Changed: use FMULT instead of FMult *)
+  | "/." { FDIV }     (* Changed: use FDIV instead of FDiv *)
 
   | "true" { TRUE }
   | "false" { FALSE }
@@ -60,7 +59,6 @@ rule token = parse
   | "int" { TINT }
   | "bool" { TBOOL }
   | "unit" { TUNIT }
-
 
   | '('  { LPAR }
   | ')'  { RPAR }

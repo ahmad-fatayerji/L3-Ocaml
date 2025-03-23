@@ -51,6 +51,7 @@ type unary_op = Not
 type expr =
   | Var of idvar
   | Int of int
+  | Float of float  (* Added for the float type *)
   | Bool of bool
   | BinaryOp of binary_op * expr * expr
   | UnaryOp of unary_op * expr
@@ -113,7 +114,7 @@ let rec string_of_expr_list expr_list =
   and string_of_expr expr =
     match expr with
     | Var x -> x
-    (* Removed branch for IdFun because no such constructor exists in expr *)
+    | Float f -> string_of_float f
     | Int n -> string_of_int n
     | Bool b -> string_of_bool b
     | BinaryOp (binop, expr1, expr2) ->
