@@ -18,10 +18,10 @@ let get_lineBuffer () =
 let () =
   let lineBuffer = get_lineBuffer () in
   try
-    let prog = Parser.prog Lexer.token lineBuffer in
-    (*print_string (Syntax.string_of_programme prog);*)
-    let type_ok = Verif.verif_prog prog in
-    if type_ok then Evaluateur.eval_prog prog
+    let program = Parser.program Lexer.token lineBuffer in
+    (*print_string (Syntax.string_of_programme program);*)
+    let type_ok = Verif.verif_prog program in
+    if type_ok then Evaluateur.eval_prog program
     else failwith "Erreur de typage dans le programme fourni en entrée."
   with Parser.Error ->
     failwith

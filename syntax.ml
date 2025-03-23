@@ -139,5 +139,5 @@ let string_of_fun_decl fdecl =
   "let " ^ fdecl.id ^ "(" ^ string_of_var_list fdecl.var_list ^ ") : " ^
   string_of_type fdecl.typ_retour ^ " = " ^ string_of_expr fdecl.corps
 
-  let string_of_programme prog =
-  String.concat "\n" (List.map string_of_fun_decl prog)
+  let string_of_programme program =
+  String.concat "\n" (List.map string_of_fun_decl program)

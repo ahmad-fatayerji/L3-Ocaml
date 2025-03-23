@@ -16,34 +16,34 @@ type t_val =
 type env_val = { l_variables: (idvar * t_val) list ; l_functions: (fun_decl * t_val) list }
 
 
-(* findVal: Searches for the variable 'x' in the evaluation environment 'env'
+(* findVal: Searches for the variable 'x' in the evaluation environment 'environement'
    (a list of (idvar * t_val) pairs). Returns its associated value if found,
    or raises an error if not found. *)
-		let rec findVal env x =
-			match env with
+		let rec findVal environement x =
+			match environement with
 			| [] -> failwith ("Variable " ^ x ^ " not found")
 			| (varName, value) :: rest ->
 					if varName = x then value
 					else findVal rest x
 		
-(* findFun: Searches for the function named 'f' in the program 'prog'
+(* findFun: Searches for the function named 'f' in the program 'program'
    (a list of function declarations). Returns the matching function declaration if found,
    or raises an error if not found. *)
-		let rec findFun prog f =
-			match prog with
+		let rec findFun program f =
+			match program with
 			| [] -> failwith ("Function " ^ f ^ " not found")
 			| fdecl :: rest ->
 					if fdecl.id = f then fdecl
 					else findFun rest f
 
-(* eval_expr: Evaluates the expression 'expr' in the environment 'env'
-   and using the program 'prog' for function lookups.
+(* eval_expr: Evaluates the expression 'expr' in the environment 'environement'
+   and using the program 'program' for function lookups.
    Returns the computed value (of type t_val). *)
-	 let rec eval_expr env prog expr =
+	 let rec eval_expr environement program expr =
 		match expr with
 		| Var x ->
 				(* Look up variable 'x' in the environment *)
-				findVal env x
+				findVal environement x
 		| Int n ->
 				VInt n
 		| Float f ->
@@ -51,8 +51,8 @@ type env_val = { l_variables: (idvar * t_val) list ; l_functions: (fun_decl * t_
 		| Bool b ->
 				VBool b
 		| BinaryOp (op, e1, e2) ->
-				let v1 = eval_expr env prog e1 in
-				let v2 = eval_expr env prog e2 in
+				let v1 = eval_expr environement program e1 in
+				let v2 = eval_expr environement program e2 in
 				(match (op, v1, v2) with
 				 | (Plus, VInt n1, VInt n2) -> VInt (n1 + n2)
 				 | (Minus, VInt n1, VInt n2) -> VInt (n1 - n2)
@@ -76,39 +76,39 @@ type env_val = { l_variables: (idvar * t_val) list ; l_functions: (fun_decl * t_
 				 | (GreatEq, VInt n1, VInt n2) -> VBool (n1 >= n2)
 				 | _ -> failwith "Type error in binary operation")
 		| UnaryOp (Not, e) ->
-				(match eval_expr env prog e with
+				(match eval_expr environement program e with
 				 | VBool b -> VBool (not b)
 				 | _ -> failwith "Type error in unary operation 'not'")
 		| If (cond, e_then, e_else) ->
-				(match eval_expr env prog cond with
-				 | VBool true -> eval_expr env prog e_then
-				 | VBool false -> eval_expr env prog e_else
+				(match eval_expr environement program cond with
+				 | VBool true -> eval_expr environement program e_then
+				 | VBool false -> eval_expr environement program e_else
 				 | _ -> failwith "Condition must be a boolean")
 		| Let (x, _, e1, e2) ->
-				let v1 = eval_expr env prog e1 in
-				eval_expr ((x, v1) :: env) prog e2
+				let v1 = eval_expr environement program e1 in
+				eval_expr ((x, v1) :: environement) program e2
 		| App (f, args) ->
-				let fdecl = findFun prog f in
-				let arg_vals = List.map (eval_expr env prog) args in
+				let fdecl = findFun program f in
+				let arg_vals = List.map (eval_expr environement program) args in
 				(* Create a new environment binding function parameters to argument values *)
 				let new_env = List.combine (List.map fst fdecl.var_list) arg_vals in
-				eval_expr new_env prog fdecl.corps
+				eval_expr new_env program fdecl.corps
 		| Seq (e1, e2) ->
-				let _ = eval_expr env prog e1 in
-				eval_expr env prog e2
+				let _ = eval_expr environement program e1 in
+				eval_expr environement program e2
 		| PrintInt e ->
-				(match eval_expr env prog e with
+				(match eval_expr environement program e with
 				 | VInt n -> print_int n; print_newline (); VUnit
 				 | _ -> failwith "print_int must take an integer")
 	
 
-(* eval_prog: Evaluates the program 'prog' by searching for the 'main' function,
+(* eval_prog: Evaluates the program 'program' by searching for the 'main' function,
    ensuring it takes no arguments, and then evaluating its body.
    The result is printed according to its type. *)
-	 let eval_prog prog =
-		let main_decl = findFun prog "main" in
+	 let eval_prog program =
+		let main_decl = findFun program "main" in
 		if main_decl.var_list <> [] then failwith "main must take no arguments";
-		let result = eval_expr [] prog main_decl.corps in
+		let result = eval_expr [] program main_decl.corps in
 		match result with
 		| VInt n -> print_int n; print_newline ()
 		| VFloat f -> print_float f; print_newline ()
