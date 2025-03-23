@@ -30,22 +30,23 @@ Théo Chouin
 %token SEMICOLON              (* Added sequencing operator *)
 
 %left IN
-%left SEMICOLON
+%left SEMICOLON 
 %left ELSE
-%left PLUS MINUS
-%left MULT DIV FPLUS FMINUS FMULT FDIV
-%left LAND LOR
-%nonassoc EQ NEQ GREAT GREATEQ LESS LESSEQ
 %nonassoc NOT
+%nonassoc EQ NEQ GREAT GREATEQ LESS LESSEQ
+%left LOR
+%left LAND
+%left PLUS MINUS FPLUS FMINUS
+%left MULT DIV FMULT FDIV
 
 
-%start prog
-%type <Syntax.programme> prog
+%start program
+%type <Syntax.programme> program
 
 %%
 
 (* A program is a list of function declarations *)
-prog: list_implem_decl; EOF  { $1 }
+program: list_implem_decl; EOF  { $1 }
 
 (* Type rules: Added TFLOAT to support float types *)
 ty:
