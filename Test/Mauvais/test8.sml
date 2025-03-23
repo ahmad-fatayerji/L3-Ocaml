@@ -1,1 +1,1 @@
-let main() : int = 10 / 0
+let main() : float = 10.0 /. 0.0
