@@ -1,3 +1,8 @@
+(* Auteurs: 684J
+Ahmad Fatayerji
+Théo Chouin
+*)
+
 (* typ représente les types de SimpleML *)
 type typ = 
   | TInt 
@@ -91,7 +96,6 @@ and string_of_expr expr =
   | Var x -> x
   | Int n -> string_of_int n
   | Bool b -> string_of_bool b
-  | Unit -> "()"  (* New case for unit literal *)
   | BinaryOp (binop, expr1, expr2) ->
       string_of_expr expr1 ^ string_of_binary_op binop ^ string_of_expr expr2
   | UnaryOp (unop, expr) -> string_of_unary_op unop ^ string_of_expr expr
@@ -102,8 +106,8 @@ and string_of_expr expr =
       "let (" ^ idvar ^ ":" ^ string_of_type typ ^ ") = " ^ string_of_expr expr1
       ^ " in " ^ string_of_expr expr2
   | App (idfun, expr_list) -> idfun ^ "(" ^ string_of_expr_list expr_list ^ ")"
-  | Seq (e1, e2) ->
-    "(" ^ string_of_expr e1 ^ "; " ^ string_of_expr e2 ^ ")"  (* Added this case *)
+   | Seq (e1, e2) ->
+      "(" ^ string_of_expr e1 ^ "; " ^ string_of_expr e2 ^ ")"  (* Added this case *)
 
 let rec string_of_var_list var_list =
   match var_list with
