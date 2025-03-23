@@ -72,7 +72,7 @@ expr:
   | TRUE            { Bool true }
   | FALSE           { Bool false }
   | LPAR expr RPAR   { $2 }
-  | PRINT_INT LPAR expr RPAR { PInt $3 }  (* Added: print_int rule *)
+  | PRINT_INT LPAR expr RPAR { PrintInt $3 }  (* Added: print_int rule *)
   | app_expr        { $1 }
   | IF expr THEN expr ELSE expr { If ($2, $4, $6) }
   | LET LPAR VAR COLON ty RPAR EQ expr IN expr
