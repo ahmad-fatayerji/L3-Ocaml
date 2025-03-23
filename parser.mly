@@ -29,8 +29,9 @@ Théo Chouin
 %token TFLOAT                  (* Added float token *)
 %token SEMICOLON              (* Added sequencing operator *)
 
+%left IN
 %left SEMICOLON
-%left ELSE IN
+%left ELSE
 %left PLUS MINUS
 %left MULT DIV FPLUS FMINUS FMULT FDIV
 %left LAND LOR
