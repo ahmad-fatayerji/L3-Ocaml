@@ -1,8 +1,3 @@
-(* Auteurs: 684J
-Ahmad Fatayerji
-Théo Chouin
-*)
-
 %{
   open Syntax
 %}
@@ -29,14 +24,13 @@ Théo Chouin
 %token TFLOAT                  (* Added float token *)
 %token SEMICOLON              (* Added sequencing operator *)
 
-%left ELSE IN
-%nonassoc NOT
-%nonassoc EQ NEQ GREAT GREATEQ LESS LESSEQ
-%left LOR
-%left LAND
-%left PLUS MINUS
-%left MULT DIV
 %left SEMICOLON
+%left PLUS MINUS
+%left MULT DIV FPLUS FMINUS FMULT FDIV
+%left LAND LOR
+%nonassoc EQ NEQ GREAT GREATEQ LESS LESSEQ
+%nonassoc NOT
+%left ELSE IN
 
 %start prog
 %type <Syntax.programme> prog
