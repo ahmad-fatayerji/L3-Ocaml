@@ -6,8 +6,7 @@
 
   let newline lexbuf =
     let pos = lexbuf.lex_curr_p in
-      lexbuf.lex_curr_p <-
-        { pos with pos_lnum = pos.pos_lnum + 1; pos_bol = pos.pos_cnum }
+      lexbuf.lex_curr_p <- { pos with pos_lnum = pos.pos_lnum + 1; pos_bol = pos.pos_cnum }
 }
 
 let space = [' ' '\t' '\n' '\r']
@@ -15,6 +14,9 @@ let digit = ['0'-'9']
 let alpha = ['a'-'z' 'A'-'Z']
 let ident = ['a'-'z'] (alpha | '_' | '\'' | digit)*
 let integer = digit+
+
+(* Added definition for float_literal *)
+let float_literal = digit+ '.' digit* | '.' digit+
 
 rule token = parse
   | '\n'  { newline lexbuf; token lexbuf }
@@ -27,6 +29,11 @@ rule token = parse
   | '-'  { MINUS }
   | '*'  { MULT }
   | '/'  { DIV }
+
+  | "+." { FPLUS }    (* Changed: use FPLUS instead of FPlus *)
+  | "-." { FMINUS }   (* Changed: use FMINUS instead of FMinus *)
+  | "*." { FMULT }    (* Changed: use FMULT instead of FMult *)
+  | "/." { FDIV }     (* Changed: use FDIV instead of FDiv *)
 
   | "true" { TRUE }
   | "false" { FALSE }
@@ -43,24 +50,25 @@ rule token = parse
   | "let"  { LET }
   | "in"  { IN }
 
-
+  | "print_int" { PRINT_INT }  (* Added print_int token *)
   | "if" { IF }
   | "then" { THEN }
   | "else" { ELSE }
-
+  | "float" { TFLOAT }         (* Added float token *)
 
   | "int" { TINT }
   | "bool" { TBOOL }
-
+  | "unit" { TUNIT }
 
   | '('  { LPAR }
   | ')'  { RPAR }
   | ','  { COMMA }
   | ':'  { COLON }
+  | ';'  { SEMICOLON }  (* Sequencing operator is here *)
   
   | eof  { EOF }
 
-
+  | float_literal as f { FLOAT (float_of_string f) }  (* Float literal rule; must come before integer *)
   | integer as n  { INT (int_of_string n) }
   | ident as id  { VAR id }
 

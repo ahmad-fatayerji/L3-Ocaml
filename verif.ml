@@ -7,67 +7,114 @@ open Syntax
 
 type env_type = { l_variables: (idvar * typ) list ; l_functions: fun_decl list }
 
-(* on cherche l'idvar passé en argument dans une liste de type (idvar*typ)list, si l'id est trouvé on compare le typ associé avec le type attendu passé en argument
-retourne vrai si le type attendu est identique au type de la variable recherchée, retourne faux sinon *)
-let rec check_var v att l = match (v,l) with
-	| (_,[]) -> failwith "Error check_var : use of undeclared variable !"
-	| (x,(a,b)::l') -> if (x = a) then
- 						if (att = b)
-       						then true
-	     					else false
-					else check_var x att l'
+(* findVar: Searches for the variable 'x' in the type environment 'env' 
+   (a list of (idvar * typ) pairs). Returns Some varType if found, 
+   or None if the variable is not declared. *)
+		let rec findVar env x =
+			match env with
+			| [] -> None
+			| (varName, varType) :: rest ->
+					if varName = x then Some varType
+					else findVar rest x
 
-(* même fonctionnement que la fonction check_var mais avec un idfun et une liste de type fun_decl list
-retourne vrai si le type attendu est identique au type de la fonction recherchée, retourne faux sinon *)
-let rec check_fun f att l = match (f,l) with
-	| (_,[]) -> failwith "Error check_fun : use of undeclared function !"
-	| (x,f'::l') -> if (x = f'.id) then
- 						if (att = f'.typ_retour)
-       						then true
-						else false
-					else check_fun x att l'
+(* findFunction: Searches for the function named 'f' in the program 'prog'
+   (a list of function declarations). If found, returns Some (params, returnType),
+   where 'params' is the list of (idvar * typ) pairs (i.e., the function's parameters)
+   and 'returnType' is the declared return type of the function.
+   Returns None if no matching function is found. *)
+		let rec findFunction prog f =
+			match prog with
+			| [] -> None
+			| fdecl :: rest ->
+					if fdecl.id = f then Some (fdecl.var_list, fdecl.typ_retour)
+					else findFunction rest f
 
-(* retourne la liste des arguments de la fonction dont l'identifiant est entrée en paramètre *)
-let rec get_decl_arg id fList = match fList with
-	| (a,b,_,_)::fL' -> if ( a = id ) then b else get_decl_arg id fL'
- 	| [] -> []
+(* verif_expr: Verifies that the expression 'expr' has the expected type 'expected_ty'
+   under the type environment 'env' (a list of (idvar * typ) pairs) and using the
+   program 'prog' for function lookups.
+   Returns true if the expression is well-typed; false otherwise. *)
+		let rec verif_expr env prog expr expected_ty =
+			match expr with
+			| Var x ->
+					(match findVar env x with
+					 | Some found_ty -> found_ty = expected_ty
+					 | None -> false)  (* Variable not declared *)
+			| Int _ -> expected_ty = TInt
+			| Float _ -> expected_ty = TFloat
+			| Bool _ -> expected_ty = TBool
+			| BinaryOp (op, e1, e2) ->
+					(match op with
+					 | Plus | Minus | Mult | Div ->
+							 verif_expr env prog e1 TInt &&
+							 verif_expr env prog e2 TInt &&
+							 expected_ty = TInt
+					 | FPlus | FMinus | FMult | FDiv ->
+							 verif_expr env prog e1 TFloat &&
+							 verif_expr env prog e2 TFloat &&
+							 expected_ty = TFloat
+					 | And | Or ->
+							 verif_expr env prog e1 TBool &&
+							 verif_expr env prog e2 TBool &&
+							 expected_ty = TBool
+					 | Equal | NEqual | Less | LessEq | Great | GreatEq ->
+							 let ints_ok = verif_expr env prog e1 TInt && verif_expr env prog e2 TInt in
+							 let bools_ok = verif_expr env prog e1 TBool && verif_expr env prog e2 TBool in
+							 ((ints_ok || bools_ok) && expected_ty = TBool))
+			| UnaryOp (Not, e) ->
+					verif_expr env prog e TBool && expected_ty = TBool
+			| If (cond, e_then, e_else) ->
+					verif_expr env prog cond TBool &&
+					verif_expr env prog e_then expected_ty &&
+					verif_expr env prog e_else expected_ty
+			| Let (x, t, e1, e2) ->
+					verif_expr env prog e1 t &&
+					verif_expr ((x, t) :: env) prog e2 expected_ty
+			| App (f, args) ->
+					(match findFunction prog f with
+					 | Some (params, ret_ty) ->
+							 List.length params = List.length args &&
+							 List.for_all2 (fun (_, param_ty) arg ->
+								 verif_expr env prog arg param_ty) params args &&
+							 ret_ty = expected_ty
+					 | None -> false)
+			| Seq (e1, e2) ->
+					((* e1 can be any allowed type; here we check for int, bool, unit, or float *)
+					 (verif_expr env prog e1 TInt ||
+						verif_expr env prog e1 TBool ||
+						verif_expr env prog e1 TUnit ||
+						verif_expr env prog e1 TFloat))
+					&&
+					verif_expr env prog e2 expected_ty
+			(* | IdFun _ -> false  A function identifier alone is not a valid expression *)
+			| PInt e ->
+					verif_expr env prog e TInt && expected_ty = TUnit
+		
+(* verif_decl_fun: Verifies that the function declaration 'decl' is well-typed.
+   It extends the current type environment 'env' with the parameters of the function,
+   then checks that the body (decl.corps) has the declared return type (decl.typ_retour)
+   using the verif_expr function.
+   Returns true if the function declaration is well-typed; false otherwise. *)
+		let verif_decl_fun env prog decl =
+			let extended_env = decl.var_list @ env in
+			verif_expr extended_env prog decl.corps decl.typ_retour
 
-(* fonction vérifiant si le type attendu est le même que le type de l'expression passé en argument *)
-let rec verif_expr expression type_attendu environment = 
-	(* fonction auxiliaire servant si l'expression est App, vérifie si la liste d'argument donnée en entrée de la fonction correspond à la liste d'argument dans la déclaration de la fonction *)
-	let rec check_arg decl arg env = match (decl,arg) with
-	| ( (_,a)::decl' , y::arg' ) -> if verif_expr y a env then check_arg decl' arg' env else false
- 	| ( _::_ , [] ) -> failwith "Error check_arg : not enough arguments !"
-  	| ( [] , _::_ ) -> failwith "Error check_arg : too many arguments !"
-   	| ( [] , [] ) -> true
-	in
-	match (expression,type_attendu,environment) with
-	| (Int _,TInt,_) -> true
-	| (Bool _,TBool,_) -> true
-	| (Var v,attente,env) -> check_var v attente env.l_variables
-	| (IdFun f,attente,env) -> check_fun f attente env.l_functions
-	| (BinaryOp (x,y,z),attente,env) -> begin match (x,attente) with
- 		| (Plus,TInt) 	| (Minus,TInt) | (Mult,TInt) | (Div,TInt)
-	  	| (GreatEq,TInt) -> (verif_expr z TInt env) && (verif_expr y TInt env)
-     		| (And,TBool) 	| (Or,TBool) -> (verif_expr z TBool env) && (verif_expr y TBool env)
-		| (Equal,TBool) | (NEqual,TBool) -> ( (verif_expr z TBool env) && (verif_expr y TBool env) ) || ( (verif_expr z TInt env) && (verif_expr y TInt env) )
-  		| (Less,TBool) | (LessEq,TBool) | (Great,TBool) -> (verif_expr z TInt env) && (verif_expr y TInt env)
-		| _ -> false
-		end
-	| (UnaryOp (_,x),TBool,env) -> verif_expr x TBool env
-	| (If (x,y,z),attente,env) -> (verif_expr x TBool env) && (verif_expr y attente env) && (verif_expr z attente env)
-	| (Let (a,b,c,d),attente,env) -> if (verif_expr c b env) then verif_expr d attente {l_variables = (a,b)::env.l_variables ; l_functions = env.l_functions} else false
-	| (App (a,b),attente,env) -> if check_fun a attente env.l_functions then check_arg ( get_decl_arg a env.l_functions ) b env else false
-	| _ -> false
-
-(* TO DO *)
-let verif_decl_fun f env = match (f,env) with
-	| _ -> false
-
-(* vérification du typage d'une liste de déclaration de fonction *)
-let verif_prog program =
-	let rec verif_aux l_fun env = match l_fun with
- 		| x::l_fun' -> if verif decl_fun funct env then verif_aux l_fun' { l_variables = env.l_variables ; l_functions = x::env.l_functions } else false
-   		| [] -> true
-  	in
-   verif_aux program { l_variables = [] ; l_functions = [] }
+(* verif_prog: Verifies that the entire program 'prog' is well-typed.
+   It performs two main checks:
+   1. Ensures there is a 'main' function with no parameters and an acceptable return type.
+   2. Checks that every function declaration in the program is well-typed using verif_decl_fun.
+   Returns true if both checks pass; otherwise, returns false. *)
+		let verif_prog prog =
+			(* Check for a valid main function *)
+			let main_exists =
+				List.exists (fun decl ->
+					decl.id = "main" &&
+					decl.var_list = [] &&
+					(decl.typ_retour = TUnit ||
+					 decl.typ_retour = TBool ||
+					 decl.typ_retour = TInt ||
+					 decl.typ_retour = TFloat))
+				prog
+			in
+			(* Verify all function declarations in the program *)
+			main_exists && List.for_all (fun decl -> verif_decl_fun [] prog decl) prog
+		
