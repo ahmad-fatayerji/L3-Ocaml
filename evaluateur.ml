@@ -18,11 +18,18 @@ let eval_expr expression environment = match (expression,environment) with
 	| (Var v,env) -> get_var v env.l_variables
  	| (Int i,env) -> i
   	| (Bool b,env) -> b
+   (*
    	| (BinaryOp...
+    *
     	| (UnaryOp...
+     *
      	| (If...
+      *
       	| (Let...
+       *
        	| (App...
+	*)
+ | _ -> failwith "Default error"
 
 let eval_prog program = match program with
 	| _ -> ()
