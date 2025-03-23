@@ -48,11 +48,11 @@ rule token = parse
   | "let"  { LET }
   | "in"  { IN }
 
-
+  | "print_int" { PRINT_INT }  (* Added print_int token *)
   | "if" { IF }
   | "then" { THEN }
   | "else" { ELSE }
-
+  | "float" { TFLOAT }         (* Added float token *)
 
   | "int" { TINT }
   | "bool" { TBOOL }
@@ -67,7 +67,7 @@ rule token = parse
   
   | eof  { EOF }
 
-
+  | float_literal as f { FLOAT (float_of_string f) }  (* Float literal rule; must come before integer *)
   | integer as n  { INT (int_of_string n) }
   | ident as id  { VAR id }
 
