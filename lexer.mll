@@ -1,3 +1,8 @@
+(* Auteurs: 684J
+Ahmad Fatayerji
+Théo Chouin
+*)
+
 {
   open Lexing
   open Parser
