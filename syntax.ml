@@ -113,9 +113,8 @@ let rec string_of_expr_list expr_list =
   and string_of_expr expr =
     match expr with
     | Var x -> x
-    | IdFun x -> x
+    (* Removed branch for IdFun because no such constructor exists in expr *)
     | Int n -> string_of_int n
-    | Float f -> string_of_float f
     | Bool b -> string_of_bool b
     | BinaryOp (binop, expr1, expr2) ->
         "(" ^ string_of_expr expr1 ^ " " ^ string_of_binary_op binop ^ " " ^ string_of_expr expr2 ^ ")"
