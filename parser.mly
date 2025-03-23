@@ -23,6 +23,7 @@
 %token TBOOL
 %token TUNIT
 %token TFLOAT                  (* Added float token *)
+$%token SEMICOLON              (* Added sequencing operator *)
 
 %left ELSE IN
 %nonassoc NOT
