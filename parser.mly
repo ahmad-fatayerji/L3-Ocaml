@@ -30,12 +30,13 @@ Théo Chouin
 %token SEMICOLON              (* Added sequencing operator *)
 
 %left SEMICOLON
+%left ELSE IN
 %left PLUS MINUS
 %left MULT DIV FPLUS FMINUS FMULT FDIV
 %left LAND LOR
 %nonassoc EQ NEQ GREAT GREATEQ LESS LESSEQ
 %nonassoc NOT
-%left ELSE IN
+
 
 %start prog
 %type <Syntax.programme> prog
