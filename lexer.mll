@@ -16,6 +16,9 @@ let alpha = ['a'-'z' 'A'-'Z']
 let ident = ['a'-'z'] (alpha | '_' | '\'' | digit)*
 let integer = digit+
 
+(* Added definition for float_literal *)
+let float_literal = digit+ '.' digit* | '.' digit+
+
 rule token = parse
   | '\n'  { newline lexbuf; token lexbuf }
   | space  { token lexbuf }
